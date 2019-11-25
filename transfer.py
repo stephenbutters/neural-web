@@ -9,6 +9,7 @@ import time
 import functools
 
 import tensorflow as tf
+import cv2
 
 from tensorflow.python.keras.preprocessing import image as kp_image
 from tensorflow.python.keras import models
@@ -19,6 +20,44 @@ from tensorflow.python.keras import backend as K
 tf.compat.v1.enable_eager_execution()
 
 import IPython.display
+
+# Content layer where will pull our feature maps
+content_layers = ['block5_conv2']
+
+# Style layer we are interested in
+style_layers = ['block1_conv1', 'block2_conv1', 'block3_conv1', 'block4_conv1', 'block5_conv1']
+
+num_content_layers = len(content_layers)
+num_style_layers = len(style_layers)
+
+#【原创部分，用opencv获得人脸的位子】
+def get_position(load_path,h,w): #谨防原图达不到最低vgg processing的尺寸
+  # 创建级联分类器
+  classifier_eye = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+  # 载入图像
+  #load_path='content蒙娜丽莎原图.jpg'
+  img_eye = cv2.imread(load_path)
+  img_eye=cv2.resize(img_eye,(h,w))
+  print('原来尺寸：',img_eye.shape)
+  #img_eye=np.array(load_and_process_img(load_path)[0],dtype='uint8')
+
+  #print('后来尺寸：',img_eye.shape)
+
+  # 利用分类器进行检测
+  eyeRects = classifier_eye.detectMultiScale(img_eye, 1.2, 2, cv2.CASCADE_DO_CANNY_PRUNING, (20, 20))
+  #eyeRects = classifier_eye.detectMultiScale(img_eye)
+
+  # 检测结果
+  x,y,w,h=0,0,0,0
+  if len(eyeRects) > 0:
+      counter = 0
+      for eyeRect in eyeRects:
+          counter += 1
+          x, y, w, h = eyeRect
+          print(eyeRect)
+          cv2.rectangle(img_eye, (int(x), int(y)), (int(x + w), int(y + h)), (0, 255, 0), 2, 8)
+  #cv2_imshow(img_eye)
+  return int(x),int(y), int(x + w), int(y + h)
 
 def load_img(path_to_img):
     max_dim = 512
@@ -195,7 +234,8 @@ def run_style_transfer(content_path,
                        style_path,
                        num_iterations=1000,
                        content_weight=1e3,
-                       style_weight=1e-2):
+                       style_weight=1e-2,
+                       option='all'):
     # We don't need to (or want to) train any layers of our model, so we set their
     # trainable to false.
     model = get_model()
@@ -240,8 +280,30 @@ def run_style_transfer(content_path,
     max_vals = 255 - norm_means
 
     imgs = []
+
+    #【原创部分: 改变最终的梯度传导】：
+    width,height=init_image.shape[1],init_image.shape[2]
+    x,y,x_next,y_next=get_position(content_path,height, width)
+    change=np.ones([1,width,height,3],dtype='float32')
+    print()
+    for k in range(3):
+        for i in range(height):  #定义i是高 既y
+            for j in range(width):  #定义j是长 既x
+                if i>y and i<y_next and j>x and j<x_next:
+                    change[0,i,j,k] = 0
+
+    # choose which portion to transfer
+    face_position = np.where(change == 0)
+    else_position = np.where(change == 1)
+    if option == 'face':
+        change[face_position] = 1
+        change[else_position] = 0
+    elif option == 'all':
+        change[face_position] = 1
+
     for i in range(num_iterations):
         grads, all_loss = compute_grads(cfg)
+        grads=tf.multiply(grads,tf.constant(change))
         loss, style_score, content_score = all_loss
         opt.apply_gradients([(grads, init_image)])
         clipped = tf.clip_by_value(init_image, min_vals, max_vals)
@@ -278,16 +340,10 @@ def run_style_transfer(content_path,
 
     return best_img, best_loss
 
-if __name__ == "__main__":
-    # Content layer where will pull our feature maps
-    content_layers = ['block5_conv2']
+def run(content_image, style_image, option):
 
-    # Style layer we are interested in
-    style_layers = ['block1_conv1', 'block2_conv1', 'block3_conv1', 'block4_conv1', 'block5_conv1']
+    best_starry_night, best_loss = run_style_transfer(content_image, style_image, num_iterations=20, option=option)
 
-    num_content_layers = len(content_layers)
-    num_style_layers = len(style_layers)
+    best_starry_night = Image.fromarray(best_starry_night)
 
-    best_starry_night, best_loss = run_style_transfer('/home/stephenbutters/Desktop/cmpt726-project/fast-style-transfer/examples/content/chicago.jpg',
-                                                      '/home/stephenbutters/Desktop/cmpt726-project/fast-style-transfer/examples/style/la_muse.jpg',
-                                                      num_iterations=20)
+    return best_starry_night, best_loss

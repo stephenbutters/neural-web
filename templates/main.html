@@ -33,13 +33,11 @@
           </el-row>
         </el-aside>
         <el-main>
-          <el-row style="margin-top: 50px">
-            <el-col :offset="9" :span="10">
-              <font size="18">Neural Style Transfer</font>
-            </el-col>
+          <el-row style="margin-top: 50px; text-align: center;">
+            <font size="18">Neural Style Transfer</font>
           </el-row>
-          <el-row style="margin-top: 50px">
-            <el-col :span="5" :offset="4">
+          <el-row style="margin-top: 20px">
+            <el-col :span="6" :offset="3" style="text-align: center;">
               <h1>Content Image</h1>
               <el-upload
                 action="http://127.0.0.1:5000/uploader/content"
@@ -53,7 +51,7 @@
                 <el-button size="small" type="primary">Click to upload</el-button>
               </el-upload>
             </el-col>
-            <el-col :span="5" :offset="4">
+            <el-col :span="6" :offset="6" style="text-align: center;">
               <h1>Style Image</h1>
               <el-upload
                 action="http://127.0.0.1:5000/uploader/style"
@@ -68,23 +66,30 @@
               </el-upload>
             </el-col>
           </el-row>
+          <el-row style="margin-top: 50px; text-align: center;"><h1>Which part of the image to transfer?</h1></el-row>
+          <el-row style="margin-top: 5px;">
+            <div style="text-align: center;">
+            <el-radio-group v-model="radio">
+              <el-radio label="face">Face</el-radio>
+              <el-radio label="else">Except Face</el-radio>
+              <el-radio label="all">All</el-radio>
+            </el-radio-group>
+            </div>
+          </el-row>
           <el-row style="margin-top: 50px">
-            <el-col :span="4" :offset="10">
+            <!--<el-col :span="4" :offset="10">-->
+              <div style="text-align: center;">
               <el-button type="success" @click="transferImage">Generate</el-button>
               <el-button type="danger" @click="clearnImages">Clear</el-button>
-            </el-col>
+              </div>
+            <!--</el-col>-->
           </el-row>
-          <el-row style="margin-top: 50px;"><el-col :offset="10" :span="2" style="text-align:center"><h1>Result Image</h1></el-col></el-row>
-          <el-row style="margin-top: 20px;">
-            <el-col :offset="6" :span="12">
-              <el-image :src="output_url" fit="contain" style="width: 960px; height:540px"></el-image>
-            </el-col>
+          <el-row style="margin-top: 50px; text-align: center;"><h1>Result Image</h1></el-row>
+          <el-row v-if="output_url" style="margin-top: 20px;">
+            <div style="text-align: center;">
+            <el-image :src="output_url" fit="contain" style="width: 960px; height:540px"></el-image>
+            </div>
           </el-row>
-          <!--<el-row v-else style="margin-top: 20px;">
-            <el-col :offset="6" :span="12">
-              <div style="width: 960px; height:540px;"></div>
-            </el-col>
-          </el-row>-->
         </el-main>
       </el-container>
     </el-container>
@@ -102,7 +107,8 @@
       return {
         content: [],
         style: [],
-        output_url: ''
+        output_url: '',
+        radio: 'all'
       }
     },
     methods: {
@@ -139,10 +145,17 @@
         }
         var xhttp = new XMLHttpRequest()
         var comp = this
-        var url = 'http://127.0.0.1:5000/transfer?content=' + this.content[0].name + '&style=' + this.style[0].name
+        const loading = this.$loading({
+          lock: true,
+          text: 'Loading',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        })
+        var url = 'http://127.0.0.1:5000/transfer?content=' + this.content[0].name + '&style=' + this.style[0].name + '&option=' + this.radio
         xhttp.onreadystatechange = function() {
           if (this.readyState == 4 && this.status == 200) {
             comp.output_url = xhttp.responseText
+            loading.close()
           }
         }
         xhttp.open('GET', url, true)

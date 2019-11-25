@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template, send_from_directory, request, send_file
 from werkzeug import secure_filename
+import transfer as tran
 app = Flask(__name__)
 
 @app.route('/')
@@ -31,9 +32,23 @@ def output(filename):
 
 @app.route('/transfer', methods = ['GET', 'POST'])
 def transfer():
-    content_image = request.args.get('content')
-    style_image = request.args.get('style')
-    return 'http://127.0.0.1:5000/output/chicago_la_muse'
+    content_image = os.path.join(app.root_path, 'static/content/') + request.args.get('content')
+    style_image = os.path.join(app.root_path, 'static/style/') + request.args.get('style')
+    option = request.args.get('option')
+    if option not in {'face', 'else', 'all'}:
+        return "Invalid Option"
+
+    if not os.path.exists(content_image) or not os.path.exists(style_image):
+        return "Image Not Exists"
+
+    best_image, best_loss = tran.run(content_image, style_image, option=option)
+
+    content_image_prefix = request.args.get('content').split('.')[0]
+    style_image_prefix = request.args.get('style').split('.')[0]
+    output_image_name = content_image_prefix + '_' + style_image_prefix + '_' + option
+    best_image.save(os.path.join(app.root_path, 'static/output/') + output_image_name + '.jpg')
+
+    return 'http://127.0.0.1:5000/output/' + output_image_name
 
 if __name__ == '__main__':
     app.run()
