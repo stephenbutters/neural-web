@@ -48,7 +48,7 @@ def transfer():
     output_image_name = content_image_prefix + '_' + style_image_prefix + '_' + option
     best_image.save(os.path.join(app.root_path, 'static/output/') + output_image_name + '.jpg')
 
-    return 'http://127.0.0.1:5000/output/' + output_image_name
+    return 'http://35.203.145.241/output/' + output_image_name
 
 if __name__ == '__main__':
     app.run()
