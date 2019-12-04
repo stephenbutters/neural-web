@@ -151,7 +151,7 @@
           spinner: 'el-icon-loading',
           background: 'rgba(0, 0, 0, 0.7)'
         })
-        var url = 'http://127.0.0.1:5000/transfer?content=' + this.content[0].name + '&style=' + this.style[0].name + '&option=' + this.radio
+        var url = 'http://35.203.145.241/transfer?content=' + this.content[0].name + '&style=' + this.style[0].name + '&option=' + this.radio
         xhttp.onreadystatechange = function() {
           if (this.readyState == 4 && this.status == 200) {
             comp.output_url = xhttp.responseText
