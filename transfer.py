@@ -18,6 +18,7 @@ from tensorflow.python.keras import layers
 from tensorflow.python.keras import backend as K
 
 tf.compat.v1.enable_eager_execution()
+print("GPU or not:    "tf.config.experimental.list_physical_devices('GPU'))
 
 import IPython.display
 
