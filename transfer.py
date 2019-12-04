@@ -18,7 +18,6 @@ from tensorflow.python.keras import layers
 from tensorflow.python.keras import backend as K
 
 tf.compat.v1.enable_eager_execution()
-print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
 print("GPU or not:    ", tf.config.experimental.list_physical_devices('GPU'))
 
 import IPython.display
@@ -344,7 +343,7 @@ def run_style_transfer(content_path,
 
 def run(content_image, style_image, option):
 
-    best_starry_night, best_loss = run_style_transfer(content_image, style_image, num_iterations=20, option=option)
+    best_starry_night, best_loss = run_style_transfer(content_image, style_image, num_iterations=200, option=option)
 
     best_starry_night = Image.fromarray(best_starry_night)
 
