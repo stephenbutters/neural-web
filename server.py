@@ -36,6 +36,7 @@ def output(filename):
 def transfer():
     content_image = os.path.join(app.root_path, 'static/content/') + request.args.get('content')
     style_image = os.path.join(app.root_path, 'static/style/') + request.args.get('style')
+    num_iterations = int(request.args.get('num_iterations'))
     option = request.args.get('option')
     if option not in {'face', 'else', 'all'}:
         return "Invalid Option"
@@ -43,7 +44,7 @@ def transfer():
     if not os.path.exists(content_image) or not os.path.exists(style_image):
         return "Image Not Exists"
 
-    best_image, best_loss = tran.run(content_image, style_image, option=option)
+    best_image, best_loss = tran.run(content_image, style_image, num_iterations, option=option)
 
     content_image_prefix = request.args.get('content').split('.')[0]
     style_image_prefix = request.args.get('style').split('.')[0]

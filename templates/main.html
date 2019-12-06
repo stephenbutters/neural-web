@@ -40,7 +40,7 @@
             <el-col :span="6" :offset="3" style="text-align: center;">
               <h1>Content Image</h1>
               <el-upload
-		:action="`http://${base_url}/uploader/content`"
+                :action="`http://${base_url}/uploader/content`"
                 :on-preview="handlePreview"
                 :on-success="handleSuccess_content"
                 :on-remove="handleRemove_content"
@@ -54,7 +54,7 @@
             <el-col :span="6" :offset="6" style="text-align: center;">
               <h1>Style Image</h1>
               <el-upload
-		:action="`http://${base_url}/uploader/style`"
+                :action="`http://${base_url}/uploader/style`"
                 :on-preview="handlePreview"
                 :on-success="handleSuccess_style"
                 :on-remove="handleRemove_style"
@@ -66,25 +66,29 @@
               </el-upload>
             </el-col>
           </el-row>
-          <el-row style="margin-top: 50px; text-align: center;"><h1>Which part of the image to transfer?</h1></el-row>
-          <el-row style="margin-top: 5px;">
-            <div style="text-align: center;">
-            <el-radio-group v-model="radio">
-              <el-radio label="face">Face</el-radio>
-              <el-radio label="else">Except Face</el-radio>
-              <el-radio label="all">All</el-radio>
-            </el-radio-group>
-            </div>
+          <el-row style="margin-top: 20px; text-align: center;">
+            <el-col :offset="3" :span="6">
+              <h1>Which part of the image to transfer?</h1>
+              <el-radio-group v-model="radio">
+                <el-radio label="face">Face</el-radio>
+                <el-radio label="else">Except Face</el-radio>
+                <el-radio label="all">All</el-radio>
+              </el-radio-group>
+            </el-col>
+            <el-col :offset="6" :span="6">
+              <h1>How many iterations to train?</h1>
+              <el-input-number v-model="iterations" :step="10" :min="10"></el-input-number>
+            </el-col>
           </el-row>
-          <el-row style="margin-top: 50px">
-            <!--<el-col :span="4" :offset="10">-->
+          <el-row style="margin-top: 10px">
+            <el-col :span="4" :offset="10">
               <div style="text-align: center;">
               <el-button type="success" @click="transferImage">Generate</el-button>
               <el-button type="danger" @click="clearnImages">Clear</el-button>
               </div>
-            <!--</el-col>-->
+            </el-col>
           </el-row>
-          <el-row style="margin-top: 50px; text-align: center;"><h1>Result Image</h1></el-row>
+          <el-row style="margin-top: 20px; text-align: center;"><h1>Result Image</h1></el-row>
           <el-row v-if="output_url" style="margin-top: 20px;">
             <div style="text-align: center;">
             <el-image :src="output_url" fit="contain" style="width: 960px; height:540px"></el-image>
@@ -109,7 +113,8 @@
         style: [],
         output_url: '',
         radio: 'all',
-	base_url: window.location.host
+        iterations: 100,
+        base_url: window.location.host
       }
     },
     methods: {
@@ -152,7 +157,7 @@
           spinner: 'el-icon-loading',
           background: 'rgba(0, 0, 0, 0.7)'
         })
-        var url = 'http://' + this.base_url + '/transfer?content=' + this.content[0].name + '&style=' + this.style[0].name + '&option=' + this.radio
+        var url = 'http://' + this.base_url + '/transfer?content=' + this.content[0].name + '&style=' + this.style[0].name + '&option=' + this.radio + '&num_iterations=' + this.iterations
         xhttp.onreadystatechange = function() {
           if (this.readyState == 4 && this.status == 200) {
             comp.output_url = xhttp.responseText
