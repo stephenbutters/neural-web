@@ -341,9 +341,9 @@ def run_style_transfer(content_path,
 
     return best_img, best_loss
 
-def run(content_image, style_image, option):
+def run(content_image, style_image, num_iterations, option):
 
-    best_starry_night, best_loss = run_style_transfer(content_image, style_image, num_iterations=100, option=option)
+    best_starry_night, best_loss = run_style_transfer(content_image, style_image, num_iterations, option=option)
 
     best_starry_night = Image.fromarray(best_starry_night)
 
