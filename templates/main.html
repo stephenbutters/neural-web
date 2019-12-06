@@ -40,7 +40,7 @@
             <el-col :span="6" :offset="3" style="text-align: center;">
               <h1>Content Image</h1>
               <el-upload
-                action="http://35.203.145.241/uploader/content"
+		:action="`http://${base_url}/uploader/content`"
                 :on-preview="handlePreview"
                 :on-success="handleSuccess_content"
                 :on-remove="handleRemove_content"
@@ -54,7 +54,7 @@
             <el-col :span="6" :offset="6" style="text-align: center;">
               <h1>Style Image</h1>
               <el-upload
-                action="http://35.203.145.241/uploader/style"
+		:action="`http://${base_url}/uploader/style`"
                 :on-preview="handlePreview"
                 :on-success="handleSuccess_style"
                 :on-remove="handleRemove_style"
@@ -108,7 +108,8 @@
         content: [],
         style: [],
         output_url: '',
-        radio: 'all'
+        radio: 'all',
+	base_url: window.location.host
       }
     },
     methods: {
@@ -151,7 +152,7 @@
           spinner: 'el-icon-loading',
           background: 'rgba(0, 0, 0, 0.7)'
         })
-        var url = 'http://35.203.145.241/transfer?content=' + this.content[0].name + '&style=' + this.style[0].name + '&option=' + this.radio
+        var url = 'http://' + this.base_url + '/transfer?content=' + this.content[0].name + '&style=' + this.style[0].name + '&option=' + this.radio
         xhttp.onreadystatechange = function() {
           if (this.readyState == 4 && this.status == 200) {
             comp.output_url = xhttp.responseText

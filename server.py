@@ -1,8 +1,10 @@
 import os
+import sys
 from flask import Flask, render_template, send_from_directory, request, send_file
 from werkzeug import secure_filename
 import transfer as tran
 app = Flask(__name__)
+address = sys.argv[1]
 
 @app.route('/')
 def main():
@@ -48,7 +50,7 @@ def transfer():
     output_image_name = content_image_prefix + '_' + style_image_prefix + '_' + option
     best_image.save(os.path.join(app.root_path, 'static/output/') + output_image_name + '.jpg')
 
-    return 'http://35.203.145.241/output/' + output_image_name
+    return 'http://{}/output/'.format(address) + output_image_name
 
 if __name__ == '__main__':
     app.run()
