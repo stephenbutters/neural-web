@@ -251,7 +251,7 @@ def run_style_transfer(content_path,
     init_image = load_and_process_img(content_path)
     init_image = tf.Variable(init_image, dtype=tf.float32)
     # Create our optimizer
-    opt = tf.compat.v1.train.AdamOptimizer(learning_rate=5, beta1=0.99, epsilon=1e-1)
+    opt = tf.compat.v1.train.AdamOptimizer(learning_rate=25, beta1=0.99, epsilon=1e-1)
 
     # For displaying intermediate images
     iter_count = 1
@@ -343,7 +343,7 @@ def run_style_transfer(content_path,
 
 def run(content_image, style_image, option):
 
-    best_starry_night, best_loss = run_style_transfer(content_image, style_image, num_iterations=200, option=option)
+    best_starry_night, best_loss = run_style_transfer(content_image, style_image, num_iterations=100, option=option)
 
     best_starry_night = Image.fromarray(best_starry_night)
 
