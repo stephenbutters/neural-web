@@ -24,9 +24,11 @@ import IPython.display
 
 # Content layer where will pull our feature maps
 content_layers = ['block5_conv2']
+#content_layers = ['block4_conv2']
 
 # Style layer we are interested in
-style_layers = ['block1_conv1', 'block2_conv1', 'block3_conv1', 'block4_conv1', 'block5_conv1']
+#style_layers = ['block1_conv1', 'block2_conv1', 'block3_conv1', 'block4_conv1', 'block5_conv1']
+style_layers = ['block1_conv1', 'block2_conv1']
 
 num_content_layers = len(content_layers)
 num_style_layers = len(style_layers)
@@ -45,11 +47,12 @@ def get_position(load_path,h,w): #谨防原图达不到最低vgg processing的�
   #print('后来尺寸：',img_eye.shape)
 
   # 利用分类器进行检测
-  eyeRects = classifier_eye.detectMultiScale(img_eye, 1.2, 2, cv2.CASCADE_DO_CANNY_PRUNING, (20, 20))
+  eyeRects = classifier_eye.detectMultiScale(img_eye, 1.03, 1, cv2.CASCADE_DO_CANNY_PRUNING)
   #eyeRects = classifier_eye.detectMultiScale(img_eye)
 
   # 检测结果
-  x,y,w,h=0,0,0,0
+  #x,y,w,h=0,0,0,0
+  collect = []
   if len(eyeRects) > 0:
       counter = 0
       for eyeRect in eyeRects:
@@ -57,8 +60,10 @@ def get_position(load_path,h,w): #谨防原图达不到最低vgg processing的�
           x, y, w, h = eyeRect
           print(eyeRect)
           cv2.rectangle(img_eye, (int(x), int(y)), (int(x + w), int(y + h)), (0, 255, 0), 2, 8)
+          collect.append([int(x), int(y), int(x+w), int(y+h)])
   #cv2_imshow(img_eye)
-  return int(x),int(y), int(x + w), int(y + h)
+  #return int(x),int(y), int(x + w), int(y + h)
+  return collect
 
 def load_img(path_to_img):
     max_dim = 512
@@ -234,6 +239,7 @@ def compute_grads(cfg):
 def run_style_transfer(content_path,
                        style_path,
                        num_iterations=1000,
+                       rate = 30,
                        content_weight=1e3,
                        style_weight=1e-2,
                        option='all'):
@@ -251,7 +257,7 @@ def run_style_transfer(content_path,
     init_image = load_and_process_img(content_path)
     init_image = tf.Variable(init_image, dtype=tf.float32)
     # Create our optimizer
-    opt = tf.compat.v1.train.AdamOptimizer(learning_rate=25, beta1=0.99, epsilon=1e-1)
+    opt = tf.compat.v1.train.AdamOptimizer(learning_rate=rate, beta1=0.99, epsilon=1e-1)
 
     # For displaying intermediate images
     iter_count = 1
@@ -284,23 +290,30 @@ def run_style_transfer(content_path,
 
     #【原创部分: 改变最终的梯度传导】：
     width,height=init_image.shape[1],init_image.shape[2]
-    x,y,x_next,y_next=get_position(content_path,height, width)
+    #x,y,x_next,y_next=get_position(content_path,height, width)
+    pos_collect = get_position(content_path, height, width)
     change=np.ones([1,width,height,3],dtype='float32')
-    print()
-    for k in range(3):
-        for i in range(height):  #定义i是高 既y
-            for j in range(width):  #定义j是长 既x
-                if i>y and i<y_next and j>x and j<x_next:
-                    change[0,i,j,k] = 0
+    for c in range(len(pos_collect)):
+        x,y,x_next,y_next = pos_collect[c]
+        print("------------>", x,y,x_next,y_next)
+        for k in range(3):
+            for i in range(height):  #定义i是高 既y
+                for j in range(width):  #定义j是长 既x
+                    if i>y and i<y_next and j>x and j<x_next:
+                        change[0,i,j,k] = 0
 
     # choose which portion to transfer
     face_position = np.where(change == 0)
     else_position = np.where(change == 1)
     if option == 'face':
-        change[face_position] = 1
+        change[face_position] = 0.5
         change[else_position] = 0
+    elif option == 'else':
+        change[face_position] = 0
+        change[else_position] = 1
     elif option == 'all':
-        change[face_position] = 1
+        change[face_position] = 0.25
+        change[else_position] = 1
 
     for i in range(num_iterations):
         grads, all_loss = compute_grads(cfg)
@@ -341,9 +354,9 @@ def run_style_transfer(content_path,
 
     return best_img, best_loss
 
-def run(content_image, style_image, num_iterations, option):
+def run(content_image, style_image, num_iterations, rate, option):
 
-    best_starry_night, best_loss = run_style_transfer(content_image, style_image, num_iterations, option=option)
+    best_starry_night, best_loss = run_style_transfer(content_image, style_image, num_iterations, rate, option=option)
 
     best_starry_night = Image.fromarray(best_starry_night)
 
